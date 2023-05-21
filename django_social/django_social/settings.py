@@ -16,6 +16,23 @@ import os
 
 load_dotenv()
 
+import logging
+# Set the logging level to DEBUG or lower as needed
+logging.basicConfig(level=logging.DEBUG)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,6 +47,19 @@ DEBUG = os.environ.get('DJANGO_DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'django_social.middleware.JWTAuthenticationMiddleware',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+        'users.permissions.IsNotBanned',
+        'users.permissions.IsAdminOrReadOnly',
+        'users.permissions.IsOwnerOrReadOnly',
+    ],
+}
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,10 +69,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'pages',
-    'posts',
-    'tags',
-    'users',
+    'rest_framework',
+    'drf_spectacular',
+    'pages.apps.PagesConfig',
+    'posts.apps.PostsConfig',
+    'tags.apps.TagsConfig',
+    'users.apps.UsersConfig',
+    'searches.apps.SearchesConfig',
+    'news_feeds.apps.NewsFeedsConfig'
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,86 @@
+version: '3'
+
+services:
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rmqdata:/var/lib/rabbitmq/data
+
+  db:
+    container_name: postgres
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  celery:
+    container_name: celery
+    build:
+      context: .
+      target: celery
+    entrypoint: /app/entrypoint_celery.sh
+    restart: always
+    environment:
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+    depends_on:
+      - db
+      - rabbitmq
+
+  web:
+    container_name: django
+    build:
+      context: .
+      target: django
+    entrypoint: /app/entrypoint_django.sh
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - rabbitmq
+      - celery
+    environment:
+      DJANGO_SETTINGS_MODULE: django_social.settings
+    env_file: .env
+
+  localstack:
+    container_name: localstack
+    image: localstack/localstack
+    environment:
+      - SERVICES=s3,dynamodb,ses
+      - DEFAULT_REGION=us-east-1
+      - HOSTNAME=localhost
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+      - "4579:4579"
+    volumes:
+      - localstack:/tmp/localstack
+    command: "localstack start"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+
+volumes:
+  pgdata:
+  rmqdata:
+  localstack:
