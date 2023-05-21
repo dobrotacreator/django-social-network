@@ -36,4 +36,5 @@ class User(AbstractUser):
     def is_blocked_now(self):
         if self.is_blocked and self.blocked_until and self.blocked_until > timezone.now():
             return True
+        self.unblock()
         return False
