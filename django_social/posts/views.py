@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsNotBanned, IsAdmin, IsModerator
 from .serializers import PostSerializer
 from .permissions import IsOwner, CanViewPosts, CanInteractPosts
-from .services import get_posts_for_page_service, create_post_service, like_post_service, get_likes_service
+from .services import get_posts_for_page_service, create_post_service, like_post_service, get_likes_service, \
+    perform_create_service
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -16,7 +17,12 @@ class PostViewSet(viewsets.ModelViewSet):
         return get_posts_for_page_service(self)
 
     def create(self, request, *args, **kwargs):
-        return create_post_service(self, request, *args, **kwargs)
+        request = create_post_service(request)
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        perform_create_service(serializer)
 
     @action(detail=True, methods=['post'],
             permission_classes=[IsAuthenticated, IsNotBanned, IsAdmin | IsModerator | IsOwner | CanInteractPosts])

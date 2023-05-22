@@ -14,6 +14,7 @@ djangorestframework = "*"
 pyjwt = "*"
 drf-spectacular = "*"
 drf-nested-routers = "*"
+boto3 = "*"
 
 [dev-packages]
 

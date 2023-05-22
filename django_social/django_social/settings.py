@@ -14,24 +14,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+import boto3
+from botocore.client import Config
 
-import logging
-# Set the logging level to DEBUG or lower as needed
-logging.basicConfig(level=logging.DEBUG)
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'DEBUG',
-    },
-}
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -164,9 +150,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "users.User"
 
+# RabbitMQ configuration
+BROKER_URL = os.environ.get('BROKER_URL')
+
 # Celery Configuration Options
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
+CELERY_BROKER_URL = BROKER_URL
 CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+# AWS Configuration
+boto3.setup_default_session()
+ses = boto3.client(
+    'ses',
+    region_name='us-east-1',
+    endpoint_url='http://localstack:4566',  # LocalStack endpoint for SES
+    aws_access_key_id='dummy',  # Dummy credentials for local development
+    aws_secret_access_key='dummy',
+    config=Config(signature_version='v4', s3={'addressing_style': 'path'})
+)
+ses.verify_email_identity(
+        EmailAddress='noreply@example.com'
+    )
+
+# AWS SES Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 4579
+EMAIL_HOST_USER = 'test@example.com'  # Replace with your desired sender email
+EMAIL_USE_TLS = True  # Optional, use it if needed

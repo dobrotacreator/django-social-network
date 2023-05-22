@@ -1,8 +1,9 @@
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
+from .tasks import send_post_notification
+from .models import Post
 from pages.models import Page
-from posts.models import Post
 from users.models import User
 from users.serializers import UserSerializer
 
@@ -38,14 +39,24 @@ def validate_reply_to(post_id: int) -> int | None:
     return None
 
 
-def create_post_service(view, request, *args, **kwargs):
+def create_post_service(request):
     reply_to_id = request.data.get('reply_to')
     validated_reply_to_id = validate_reply_to(reply_to_id)
 
     if validated_reply_to_id:
         request.data['reply_to'] = validated_reply_to_id
 
-    return super(view, view).create(request, *args, **kwargs)
+    return request
+
+
+# PERFORM CREATE
+def perform_create_service(serializer) -> None:
+    post: Post = serializer.instance
+
+    page_uuid = post.page.uuid
+    post_content = post.content
+
+    send_post_notification.delay(page_uuid, post_content)
 
 
 # LIKE
