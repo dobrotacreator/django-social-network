@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
+from aws.services import upload_image
 from users.permissions import IsNotBanned, IsAdmin, IsModerator
 from .models import Page
 from .serializers import PageSerializer
@@ -22,7 +23,12 @@ class PageViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         page = create_page_with_tags(request, serializer)
+        self.perform_create(serializer)
         return self.get_success_response(page)
+
+    def perform_create(self, serializer):
+        upload_image(self.request, serializer, 'page_image', self.request.POST.get('uuid'))
+        serializer.save()
 
     def get_success_response(self, page):
         serializer = self.get_serializer(page)

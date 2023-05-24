@@ -17,6 +17,8 @@ import os
 import boto3
 from botocore.client import Config
 
+from aws.config import setup_aws
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -161,22 +163,11 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
 # AWS Configuration
-boto3.setup_default_session()
-ses = boto3.client(
-    'ses',
-    region_name='us-east-1',
-    endpoint_url='http://localstack:4566',  # LocalStack endpoint for SES
-    aws_access_key_id='dummy',  # Dummy credentials for local development
-    aws_secret_access_key='dummy',
-    config=Config(signature_version='v4', s3={'addressing_style': 'path'})
-)
-ses.verify_email_identity(
-        EmailAddress='noreply@example.com'
-    )
+s3, ses = setup_aws()
 
 # AWS SES Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 4579
-EMAIL_HOST_USER = 'test@example.com'  # Replace with your desired sender email
+EMAIL_HOST_USER = 'noreply@example.com'  # Replace with your desired sender email
 EMAIL_USE_TLS = True  # Optional, use it if needed

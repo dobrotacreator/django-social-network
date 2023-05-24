@@ -56,7 +56,7 @@ services:
     env_file: .env
 
   localstack:
-    container_name: localstack
+    container_name: aws
     image: localstack/localstack
     environment:
       - SERVICES=s3,dynamodb,ses
@@ -67,8 +67,8 @@ services:
       - "4571:4571"
       - "4579:4579"
     volumes:
-      - localstack:/tmp/localstack
-    command: "localstack start"
+      - aws:/tmp/aws
+    command: "aws start"
 
   pgadmin:
     container_name: pgadmin

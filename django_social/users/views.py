@@ -3,8 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
+from aws.services import upload_image
 from .models import User
-from .permissions import IsNotBanned, IsAdmin, IsModerator, IsOwnerOrReadOnly
+from .permissions import IsNotBanned, IsAdmin, IsModerator, IsOwnerOrReadOnly, IsOwner
 from .serializers import UserSerializer
 from .services import get_likes_service, block_user_service, unblock_user_service, authenticate_user_service, \
     logout_user_service, register_user
@@ -15,7 +16,12 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated, IsNotBanned, IsAdmin | IsModerator | IsOwnerOrReadOnly)
 
-    @action(detail=True, methods=['get'])
+    def perform_create(self, serializer):
+        upload_image(self.request, serializer, 'profile_image', self.request.user.id)
+        serializer.save()
+
+    @action(detail=True, methods=['get'],
+            permission_classes=(IsAuthenticated, IsNotBanned, IsAdmin | IsOwner))
     def likes(self, request, pk=None):
         return get_likes_service(self, request, pk)
 
