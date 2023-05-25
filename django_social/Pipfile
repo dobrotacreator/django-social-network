@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+python-dotenv = "*"
+psycopg = "*"
+celery = "*"
+psycopg-binary = "*"
+sqlalchemy = "*"
+djangorestframework = "*"
+pyjwt = "*"
+drf-spectacular = "*"
+drf-nested-routers = "*"
+boto3 = "*"
+pillow = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
