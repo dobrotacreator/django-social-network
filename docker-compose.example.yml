@@ -53,7 +53,7 @@ services:
       - celery
     environment:
       DJANGO_SETTINGS_MODULE: django_social.settings
-    env_file: .env
+    env_file: django_social/.env
 
   localstack:
     container_name: aws
